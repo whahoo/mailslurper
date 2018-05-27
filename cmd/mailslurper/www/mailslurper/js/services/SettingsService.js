@@ -75,7 +75,7 @@ window.SettingsService = {
 		}
 
 		var protocol = (serviceSettings.isSSL) ? "https:" : "http:";
-		var serviceURL = protocol + "//" + serviceAddress + ":" + serviceSettings.servicePort;
+		var serviceURL = '/api';
 		return serviceURL;
 	},
 

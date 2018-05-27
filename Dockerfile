@@ -5,18 +5,20 @@ LABEL maintainer="erguotou525@gmail.compute"
 RUN apk --no-cache add git libc-dev gcc
 RUN go get github.com/mjibson/esc
 
-COPY . ./src
+COPY . ./src/github.com/mailslurper/mailslurper
+WORKDIR /go/src/github.com/mailslurper/mailslurper
 
-RUN cd src/cmd/mailslurper \
+RUN cd cmd/mailslurper \
  && go get \
  && go generate \
  && go build
 
 
-FROM alpine:3.6
-
-
-COPY --from=builder /go/src/cmd/mailslurper/mailslurper mailslurper
+# FROM alpine:3.6
+FROM nginx:alpine
+COPY assets/nginx.conf /etc/nginx/nginx.conf
+COPY init.sh init.sh
+COPY --from=builder /go/src/github.com/mailslurper/mailslurper/cmd/mailslurper/mailslurper mailslurper
 
 RUN apk add --no-cache ca-certificates \
  && echo -e '{\n\
@@ -41,6 +43,6 @@ RUN apk add --no-cache ca-certificates \
   }'\
   >> config.json
 
-EXPOSE 8080 8085 2500
+EXPOSE 8000 2500
 
-CMD ["./mailslurper"]
+CMD ["./init.sh"]
