@@ -6,7 +6,7 @@
 # Folders
 _obj
 _test
-cache
+#cache
 tmp
 deploy
 .DS_Store
@@ -27,6 +27,7 @@ _testmain.go
 *.exe
 cmd/mailslurper/debug
 cmd/mailslurper/mailslurper
+cmd/createcredentials/createcredentials
 mail.db
 mailslurper.db
 www/assets/mailslurper/.DS_Store

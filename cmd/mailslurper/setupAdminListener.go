@@ -1,15 +1,19 @@
+// Copyright 2013-2018 Adam Presley. All rights reserved
+// Use of this source code is governed by the MIT license
+// that can be found in the LICENSE file.
+
 package main
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
-	"github.com/mailslurper/mailslurper/pkg/auth/authscheme"
-
 	"github.com/labstack/echo"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/mailslurper/mailslurper/cmd/mailslurper/controllers"
 	"github.com/mailslurper/mailslurper/cmd/mailslurper/www"
+	"github.com/mailslurper/mailslurper/pkg/auth/authscheme"
 	"github.com/mailslurper/mailslurper/pkg/mailslurper"
 )
 
@@ -19,7 +23,17 @@ func setupAdminListener() {
 	/*
 	 * Setup and start the HTTP listener for the application site
 	 */
-	adminController := controllers.NewAdminController(mailslurper.GetLogger(*logLevel, *logFormat, "AdminController"), renderer, SERVER_VERSION, config, CONFIGURATION_FILE_NAME, DEBUG_ASSETS)
+	adminController := &controllers.AdminController{
+		CacheService:   cacheService,
+		Config:         config,
+		ConfigFileName: CONFIGURATION_FILE_NAME,
+		DebugMode:      DEBUG_ASSETS,
+		Renderer:       renderer,
+		Lock:           &sync.Mutex{},
+		Logger:         mailslurper.GetLogger(*logLevel, *logFormat, "AdminController"),
+		ServerVersion:  SERVER_VERSION,
+	}
+
 	admin = echo.New()
 	admin.HideBanner = true
 	admin.Renderer = renderer
@@ -33,7 +47,7 @@ func setupAdminListener() {
 
 		admin.GET("/login", adminController.Login)
 		admin.POST("/perform-login", adminController.PerformLogin)
-		admin.GET("/logout", adminController.Logout, middlewares...)
+		admin.GET("/logout", adminController.Logout)
 	}
 
 	admin.GET("/", adminController.Index, middlewares...)

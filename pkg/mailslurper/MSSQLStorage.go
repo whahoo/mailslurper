@@ -1,3 +1,7 @@
+// Copyright 2013-2018 Adam Presley. All rights reserved
+// Use of this source code is governed by the MIT license
+// that can be found in the LICENSE file.
+
 package mailslurper
 
 import (
@@ -98,6 +102,7 @@ func (storage *MSSQLStorage) GetAttachment(mailID, attachmentID string) (*Attach
 	result.Headers = &AttachmentHeader{
 		FileName:    fileName,
 		ContentType: contentType,
+		Logger:      storage.logger,
 	}
 
 	result.MailID = mailID
@@ -168,6 +173,7 @@ func (storage *MSSQLStorage) GetMailByID(mailItemID string) (*MailItem, error) {
 				Headers: &AttachmentHeader{
 					FileName:    storage.xssService.SanitizeString(fileName.String),
 					ContentType: attachmentContentType.String,
+					Logger:      storage.logger,
 				},
 			}
 
@@ -308,6 +314,7 @@ func (storage *MSSQLStorage) GetMailCollection(offset, length int, mailSearch *M
 				Headers: &AttachmentHeader{
 					FileName:    storage.xssService.SanitizeString(fileName.String),
 					ContentType: attachmentContentType.String,
+					Logger:      storage.logger,
 				},
 			}
 

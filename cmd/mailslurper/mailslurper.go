@@ -15,15 +15,15 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
-
 	"github.com/mailslurper/mailslurper/pkg/mailslurper"
 	"github.com/mailslurper/mailslurper/pkg/ui"
+	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 )
 
 const (
 	// Version of the MailSlurper Server application
-	SERVER_VERSION string = "1.13.2"
+	SERVER_VERSION string = "1.14.1"
 
 	// Set to true while developing
 	DEBUG_ASSETS bool = false
@@ -34,13 +34,13 @@ const (
 var config *mailslurper.Configuration
 var database mailslurper.IStorage
 var logger *logrus.Entry
-var serviceTierConfig *mailslurper.ServiceTierConfiguration
 var renderer *ui.TemplateRenderer
 var mailItemChannel chan *mailslurper.MailItem
 var smtpListenerContext context.Context
 var smtpListenerCancel context.CancelFunc
 var smtpListener *mailslurper.SMTPListener
 var connectionManager *mailslurper.ConnectionManager
+var cacheService *cache.Cache
 
 var admin *echo.Echo
 var service *echo.Echo
@@ -56,8 +56,14 @@ func main() {
 	logger.Infof("Starting MailSlurper Server v%s", SERVER_VERSION)
 
 	renderer = ui.NewTemplateRenderer(DEBUG_ASSETS)
-
 	setupConfig()
+
+	if err = config.Validate(); err != nil {
+		logger.WithError(err).Fatalf("Invalid configuration")
+	}
+
+	cacheService = cache.New(time.Minute*time.Duration(config.AuthTimeoutInMinutes), time.Minute*time.Duration(config.AuthTimeoutInMinutes))
+
 	setupDatabase()
 	setupSMTP()
 	setupAdminListener()
